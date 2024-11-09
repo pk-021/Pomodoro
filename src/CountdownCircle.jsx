@@ -22,9 +22,7 @@ function CountdownCircle({ updateRate }, ref) {
   const setTimeMins = (mins) => {
     clearInterval(intervalRef.current);
     time.current = mins * 60 * 1000;
-    strokeOffset.current = 0;
-    console.log("123132csdf");
-    
+    strokeOffset.current = 0;    
   };
 
 
@@ -65,9 +63,16 @@ function CountdownCircle({ updateRate }, ref) {
   const pause = () => {
     clearInterval(intervalRef.current);
   }
+  
+    const reset = ()=>
+    {
+      clearInterval(intervalRef.current);
+      circleRef.current.style.strokeDashoffset= strokeLen.current
+      strokeOffset.current = 0;
+    }
 
   useImperativeHandle(ref, () => ({
-    start, setTimeMins, startAnimation, pause
+    start, setTimeMins, startAnimation, pause,reset
   }));
 
   return (

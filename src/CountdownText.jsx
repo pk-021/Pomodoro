@@ -13,8 +13,7 @@ function CountdownText({setIsRunning}, ref) {
 
     if (totalSeconds <= 0) {
       clearInterval(intervalRef.current);
-      // setTimeout(()=>{setIsRunning(false)},1000);
-      setIsRunning(false);
+      setTimeout(()=>{setIsRunning(false)},1000);
     }
   }, [totalSeconds]);
 

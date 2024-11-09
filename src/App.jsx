@@ -17,7 +17,7 @@ function App() {
 
   const [isRunning, setIsRunning] = useState(false);
   const [isCounting, setIsCounting] = useState(false);
-  const [timeMins, setTimeMins] = useState(0.1);
+  const [timeMins, setTimeMins] = useState(0.5);
 
   useEffect(() => {
     console.log("useeffect A in app.jsx");
@@ -26,20 +26,18 @@ function App() {
     textRef.current.setTimeMins(timeMins);
   }, [timeMins]);
 
-  useEffect(()=>
-  {
-    if(!isRunning)
-    {
+  useEffect(() => {
+    if (!isRunning) {
       console.log("useeffect B in app.jsx");
       circleRef.current.setTimeMins(timeMins);
       textRef.current.setTimeMins(timeMins);
     }
-  },[isRunning]);
+  }, [isRunning]);
 
   return (
     <div className="flex flex-col items-center">
       <div id="countdown" className="relative">
-        <CountdownCircle updateRate={1000} ref={circleRef} />
+        <CountdownCircle updateRate={200} ref={circleRef} />
         <CountdownText setIsRunning={setIsRunning} ref={textRef} />
 
         <button
@@ -72,6 +70,7 @@ function App() {
 
                 setTimeout(() => {
                   circleRef.current.start();
+
                   textRef.current.start();
                 }, animationDuration);
 
@@ -80,10 +79,16 @@ function App() {
             }
           }}
         >
-          {(isCounting&isRunning)? "PAUSE" : "START"}
+          {(isCounting & isRunning) ? "PAUSE" : "START"}
         </button>
       </div>
-      <Settings setPomodoroMins={setTimeMins} />
+      <Settings setPomodoroMins={(timeMins) => {
+        setIsCounting(false);
+        setIsRunning(false);
+        setTimeMins(timeMins);
+        textRef.current.setTimeMins(timeMins);
+        circleRef.current.reset()
+      }} />
     </div>
   );
 }
