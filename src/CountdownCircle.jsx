@@ -2,7 +2,7 @@ import { useEffect, useRef, useState, useImperativeHandle, forwardRef } from "re
 
 
 // Counter Circle Component
-function CountdownCircle({updateRate }, ref) {
+function CountdownCircle({ updateRate }, ref) {
 
   const intervalRef = useRef(null);
   const circleRef = useRef(null);
@@ -15,14 +15,19 @@ function CountdownCircle({updateRate }, ref) {
   useEffect(() => {
     if (circleRef.current) {
       strokeLen.current = circleRef.current.getTotalLength();
-      circleRef.current.style.setProperty('stroke-dashoffset', strokeLen.current);  //offset maximum initially, Countdown invisible
+      circleRef.current.style.strokeDashoffset= strokeLen.current;  //offset maximum initially, Countdown invisible
     }
   }, [])
 
   const setTimeMins = (mins) => {
     clearInterval(intervalRef.current);
-    time.current = mins*60*1000;
+    time.current = mins * 60 * 1000;
+    strokeOffset.current = 0;
+    console.log("123132csdf");
+    
   };
+
+
 
   const startAnimation = (startAnimationDuration) => {
     clearInterval(intervalRef.current);
@@ -32,18 +37,19 @@ function CountdownCircle({updateRate }, ref) {
   };
 
   const start = () => {
-    strokeOffset.current=0;
     circleRef.current.style.transition = `${updateRate / 1000}s linear`;
-    const strokeIncrements = updateRate/time.current * strokeLen.current; //update twice every second
+    const strokeIncrements = updateRate / time.current * strokeLen.current; //update twice every second
 
     function updateCircle() {
+      strokeOffset.current += strokeIncrements;
+
       if (strokeOffset.current < strokeLen.current) {
         console.log(strokeOffset.current);
-        strokeOffset.current += strokeIncrements;
         circleRef.current.style.strokeDashoffset = strokeOffset.current;
         return strokeOffset.current;
       }
       else {
+        console.log("offset = strokelen ")
         circleRef.current.style.strokeDashoffset = strokeLen.current;
         clearInterval(intervalRef.current);
         intervalRef.current = null;
@@ -56,8 +62,12 @@ function CountdownCircle({updateRate }, ref) {
     }
   }
 
+  const pause = () => {
+    clearInterval(intervalRef.current);
+  }
+
   useImperativeHandle(ref, () => ({
-    start, setTimeMins, startAnimation
+    start, setTimeMins, startAnimation, pause
   }));
 
   return (

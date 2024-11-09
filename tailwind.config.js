@@ -7,6 +7,11 @@ export default {
   theme: {
     extend: {
 
+      fontFamily:
+      {
+        sourGummy: ['"Sour Gummy"', 'sans']
+      }
+      ,
       keyframes:
       {
         timer:{
