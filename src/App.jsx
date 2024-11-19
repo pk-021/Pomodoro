@@ -12,34 +12,48 @@ import Settings from "./Settings";
 import Skip from "./skip";
 
 function App() {
-  const circleRef = useRef(null);
-  const textRef = useRef(null);
   const animationDuration = 500;
-
+  const refreshRate = 1000;
   const [isRunning, setIsRunning] = useState(false);
-  const [isCounting, setIsCounting] = useState(false);
-  const [timeMins, setTimeMins] = useState(0.5);
+  const [isCounting, setIsCounting] = useState(false); 
 
-  useEffect(() => {
-    console.log("useeffect A in app.jsx");
 
-    circleRef.current.setTimeMins(timeMins);
-    textRef.current.setTimeMins(timeMins);
-  }, [timeMins]);
 
-  useEffect(() => {
-    if (!isRunning) {
-      console.log("useeffect B in app.jsx");
-      circleRef.current.setTimeMins(timeMins);
-      textRef.current.setTimeMins(timeMins);
+  const [totalTime, setTotalTime] = useState(40000);
+  const [currTime, setCurrTime] = useState(totalTime);
+
+  const intervalRef = useRef(null);
+
+
+  function updateCountdown() {
+    if (isCounting && isRunning) {
+      intervalRef.current = setInterval(() => {
+        setCurrTime((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(intervalRef.current);
+            setIsCounting(false);
+            setIsRunning(false);
+            return 0;
+          }
+
+          else {
+            return (prevTime - refreshRate);
+          }
+        })
+      }, refreshRate)
     }
-  }, [isRunning]);
+    else {
+      clearInterval(intervalRef.current);
+    }
+  }
+  useEffect(updateCountdown, [isRunning, isCounting]);
+
 
   return (
     <div className="flex flex-col items-center">
       <div id="countdown" className="relative felx items-center justify-center">
-        <CountdownCircle updateRate={200} ref={circleRef} />
-        <CountdownText setIsRunning={setIsRunning} ref={textRef} />
+        <CountdownCircle isRunning={isRunning} totalTime={totalTime} currTime={currTime} />
+        <CountdownText time={currTime} />
       </div>
 
       <div className="userControls flex relative h-fit justify-center items-center">
@@ -49,37 +63,24 @@ function App() {
              text-4xl text-purple-500 font-semibold font-mono
             bg-white rounded-lg`}
           onClick={() => {
-            if (circleRef.current && textRef.current) {
-
-              if (isRunning) {
-                if (isCounting) {
-                  circleRef.current.pause();
-                  textRef.current.pause();
-                  setIsCounting(false);
-                }
-                else {
-                  setIsCounting(true);
-                  circleRef.current.start();
-                  textRef.current.start();
-                }
+            if (isRunning) {
+              if (isCounting) {
+                setIsCounting(false);
               }
               else {
-                circleRef.current.startAnimation(animationDuration);
-                textRef.current.setTimeMins(timeMins);
-                circleRef.current.setTimeMins(timeMins);
-
-                setIsRunning(true);
                 setIsCounting(true);
-
-                setTimeout(() => {
-                  circleRef.current.start();
-
-                  textRef.current.start();
-                }, animationDuration);
-
               }
+            }
+            else {
+
+              setIsRunning(true);
+              setIsCounting(true);
+              setTimeout(() => {
+              }, animationDuration);
 
             }
+
+
           }}
         >
           {(isCounting & isRunning) ? "PAUSE" : "START"}
@@ -91,9 +92,6 @@ function App() {
       <Settings setPomodoroMins={(timeMins) => {
         setIsCounting(false);
         setIsRunning(false);
-        setTimeMins(timeMins);
-        textRef.current.setTimeMins(timeMins);
-        circleRef.current.reset()
       }} />
 
     </div>
@@ -106,12 +104,9 @@ function App() {
     console.log("clicked skip");
     setIsCounting(false);
     setIsRunning(false);
-    setTimeMins(timeMins);
-    textRef.current.setTimeMins(timeMins);
-    circleRef.current.reset()
   }
-}
 
+}
 
 
 
