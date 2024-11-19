@@ -9,6 +9,7 @@ import {
 import CountdownCircle from "./CountdownCircle";
 import CountdownText from "./CountdownText";
 import Settings from "./Settings";
+import Skip from "./skip";
 
 function App() {
   const circleRef = useRef(null);
@@ -36,15 +37,17 @@ function App() {
 
   return (
     <div className="flex flex-col items-center">
-      <div id="countdown" className="relative">
+      <div id="countdown" className="relative felx items-center justify-center">
         <CountdownCircle updateRate={200} ref={circleRef} />
         <CountdownText setIsRunning={setIsRunning} ref={textRef} />
+      </div>
 
+      <div className="userControls flex relative h-fit justify-center items-center">
         <button
           className={`px-16 ${isCounting ? "py-3" : "py-5"
-            } z-10 absolute -bottom-20 left-1/2 -translate-x-1/2
-            text-4xl text-purple-500 font-semibold font-mono
-          bg-white  rounded-lg`}
+            } z-10 h-fit
+             text-4xl text-purple-500 font-semibold font-mono
+            bg-white rounded-lg`}
           onClick={() => {
             if (circleRef.current && textRef.current) {
 
@@ -81,7 +84,10 @@ function App() {
         >
           {(isCounting & isRunning) ? "PAUSE" : "START"}
         </button>
+        <Skip resetFun={reset} />
+
       </div>
+
       <Settings setPomodoroMins={(timeMins) => {
         setIsCounting(false);
         setIsRunning(false);
@@ -89,8 +95,24 @@ function App() {
         textRef.current.setTimeMins(timeMins);
         circleRef.current.reset()
       }} />
+
     </div>
+
+
+
   );
+
+  function reset() {
+    console.log("clicked skip");
+    setIsCounting(false);
+    setIsRunning(false);
+    setTimeMins(timeMins);
+    textRef.current.setTimeMins(timeMins);
+    circleRef.current.reset()
+  }
 }
+
+
+
 
 export default App;
