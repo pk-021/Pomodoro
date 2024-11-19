@@ -1,14 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 
-// Counter Circle Component
 function CountdownCircle(props, ref) {
 
   const circleRef = useRef(null);
   const [strokeLen,setStrokeLen] = useState(0);
-  
-
-  // const strokeOffset = useRef(0);
-  // const time = useRef(0);
 
 
   function startAnimation() {
@@ -27,9 +22,6 @@ function CountdownCircle(props, ref) {
       console.log("inside the startup useeffect");
     }
   }, [])
-
-
-
 
   return (
 

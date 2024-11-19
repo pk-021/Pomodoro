@@ -9,6 +9,4 @@ function Skip(props) {
     )
 }
 
-
-
 export default Skip;

@@ -1,24 +1,18 @@
 import { useEffect, useRef, useState } from "react";
 
-function Settings({ setPomodoroMins }) {
-  const [userPomodoroMins, setMins] = useState("");
-  const [visibility, setVisibility] = useState(false);
-
+function Settings(props) {
+  const [userTime, setUserTime] = useState(0);
   const handleSubmit = (event) => {
-    
     event.preventDefault();
-    setPomodoroMins(userPomodoroMins);
-    setVisibility(false);
+    props.setTotalTime(userTime * (60 * 1000));
+    props.setVisibility(false);
   };
 
   return (
     <div>
-      {visibility && (
-        <div
-          className="bg-purple-950/50 w-screen h-screen absolute top-0 left-0"
-        >
-          <form
-            onSubmit={handleSubmit}
+      {props.visibility && (
+        <div className="bg-purple-950/50 w-screen h-screen absolute top-0 left-0">
+          <form onSubmit={handleSubmit}
             className="bg-white  flex items-center justify-center flex-col
         absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
         w-1/2 min-h-96 max-w-96
@@ -29,7 +23,7 @@ function Settings({ setPomodoroMins }) {
             <div className="pomodoroIP mt-6 font-semibold text-gray-600">
               <h2 className="">Pomodoro</h2>
               <input
-                value={userPomodoroMins}
+                value={userTime}
                 className="bg-gray-200 rounded px-2"
                 type="text"
                 name=""
@@ -38,13 +32,13 @@ function Settings({ setPomodoroMins }) {
                 pattern="\d+(\.\d+)?"
                 placeholder="00 (minutes)"
                 onChange={(evnt) => {
-                  setMins(evnt.target.value);
+                  setUserTime(evnt.target.value);
                 }}
               />
             </div>
 
             <input
-            value={"Ok"}
+              value={"Ok"}
               type="submit"
               className="bg-purple-400 px-6 py-2 rounded-lg  font-semibold text-white m-6"
             />
@@ -60,7 +54,7 @@ function Settings({ setPomodoroMins }) {
         stroke="white"
         className="w-10 h-10 m-6 top-0 right-0 absolute hover:cursor-pointer"
         onClick={() => {
-          setVisibility(!visibility);
+          props.setVisibility(!props.visibility);
         }}
       >
         <path
