@@ -1,12 +1,21 @@
 import { useEffect, useRef, useState } from "react";
 
 function Settings(props) {
-  const [userTime, setUserTime] = useState(0);
+  const [userTime, setUserTime] = useState('');
+
   const handleSubmit = (event) => {
     event.preventDefault();
-    props.setTotalTime(userTime * (60 * 1000));
-    props.setVisibility(false);
+    const parsedTime = parseFloat(userTime); // Ensure numeric value
+    console.log(parsedTime);
+
+    if (!isNaN(parsedTime) && parsedTime > 0) {
+      props.setDuration(parsedTime * 60 *1000);
+      props.setVisibility(false);
+    } else {
+      alert("Please enter a valid number for the time.");
+    }
   };
+
 
   return (
     <div>

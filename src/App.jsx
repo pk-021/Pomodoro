@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState} from "react";
+import { useDeferredValue, useEffect, useRef, useState } from "react";
 
 import CountdownCircle from "./CountdownCircle";
 import CountdownText from "./CountdownText";
@@ -6,91 +6,122 @@ import Settings from "./Settings";
 import Skip from "./skip";
 
 function App() {
-  const animationDuration = 500;
+
   const refreshRate = 1000;
-
+  const [duration, setDuration] = useState(10000);
+  const [remaining, setRemaining] = useState(duration);
   const [isRunning, setIsRunning] = useState(false);
-  const [isCounting, setIsCounting] = useState(false);
+  const [isPaused, setIsPaused] = useState(true);
   const [settingsVisibility, setSettingsVisibility] = useState(false);
-  const [totalTime, setTotalTime] = useState(5000);
-  const [currTime, setCurrTime] = useState(totalTime);
 
-  const intervalRef = useRef(null);
+  const startTime = useRef(null);
+  const pauseTime = useRef(null);
+  const pauseDuration = useRef(0);
+
+  // const duration = useRef(null);
+
+  // const remaining = useRef(duration.current);
 
 
-  useEffect(updateCountdown, [isRunning, isCounting]);
+  const shouldAnimate = useRef(true);
+  const stopId = useRef(null);
+
+
+  function handleButtonClick() {
+
+    if (isRunning) {
+      isPaused ? resumeTimer() : pauseTimer();
+    }
+    else {
+      startTime.current = Date.now();
+      pauseDuration.current = 0;
+      setRemaining(duration);
+      setIsRunning(true);
+      setIsPaused(false);
+      if (!stopId.current) {
+        stopId.current = window.requestAnimationFrame(stepTimer);
+      }
+    }
+  }
+
+  const stepTimer = () => {
+    const elapsed = Date.now() - startTime.current - pauseDuration.current;
+    const newRemaining = Math.max(duration - elapsed, 0);
+
+    if (elapsed % refreshRate < 16) {
+      setRemaining(newRemaining);
+    }
+
+    if (newRemaining > 0) {
+      console.log(newRemaining);
+      stopId.current = requestAnimationFrame(stepTimer); // Continue the timer
+    } else {
+      setRemaining(0);
+      setTimeout(resetTimer, refreshRate);
+      console.log("Timer completed!")
+    }
+  };
+
+  function pauseTimer() {
+    cancelAnimationFrame(stopId.current);
+    pauseTime.current = Date.now();
+    setIsPaused(true);
+  }
+
+  function resumeTimer() {
+    if (pauseTime.current) {
+      pauseDuration.current += Date.now() - pauseTime.current;
+    }
+    setIsPaused(false);
+    stopId.current = requestAnimationFrame(stepTimer);
+  }
+
+
+  function resetTimer(_duration = duration) {
+    if (stopId.current) {
+      cancelAnimationFrame(stopId.current);
+      stopId.current = null;
+    };
+    setIsPaused(true);
+    setIsRunning(false);
+
+    pauseDuration.current = 0;
+    startTime.current = null;
+    setDuration(_duration);
+    setRemaining(_duration);
+  }
+
+
+  // useEffect(updateCountdown, [isRunning, isCounting]);
 
   return (
     <div className="flex flex-col items-center">
       <div id="countdown" className="relative felx items-center justify-center">
-        <CountdownCircle isRunning={isRunning} totalTime={totalTime} currTime={currTime} />
-        <CountdownText time={currTime} />
+        <CountdownCircle isRunning={isRunning} totalTime={duration} currTime={remaining} refreshRate={refreshRate} />
+        <CountdownText time={remaining} />
       </div>
 
       <div className="userControls flex relative h-fit justify-center items-center">
         <button
-          className={`px-16 ${isCounting ? "py-3" : "py-5"} z-10 h-fit
+          className={`px-16 ${isPaused ? "py-5" : "py-3"} z-10 h-fit
           text-4xl text-purple-500 font-semibold font-mono bg-white rounded-lg`}
           onClick={handleButtonClick}
         >
-          {(isCounting & isRunning) ? "PAUSE" : "START"}
+          {(isRunning && (!isPaused)) ? "PAUSE" : "START"}
         </button>
-        <Skip resetFun={reset} />
+        <Skip resetFun={()=>{resetTimer(duration)}} />
       </div>
 
-      <Settings visibility={settingsVisibility} setVisibility={setSettingsVisibility} setTotalTime={(timeMins) => {
-        setTotalTime(timeMins);
-        reset();
-      }} />
-
+      <Settings
+        currentDuration={duration}
+        visibility={settingsVisibility}
+        setVisibility={setSettingsVisibility}
+        setDuration={(time) => {
+          resetTimer(time);
+        }}
+      />
     </div>
   );
-
-  function updateCountdown() {
-    if (isCounting && isRunning) {
-      intervalRef.current = setInterval(() => {
-        setCurrTime((prevTime) => {
-          if (prevTime <= 0) {
-            clearInterval(intervalRef.current);
-            setIsCounting(false);
-            setIsRunning(false);
-            return 0;
-          }
-
-          else {
-            return (prevTime - refreshRate);
-          }
-        })
-      }, refreshRate)
-
-    }
-    else {
-      setCurrTime(totalTime);
-      clearInterval(intervalRef.current);
-    }
-  }
-
-  function handleButtonClick() {
-    if (isRunning) {
-      if (isCounting) {
-        setIsCounting(false);
-      }
-      else {
-        setIsCounting(true);
-      }
-    }
-    else {
-      setCurrTime(totalTime);
-      setIsRunning(true);
-      setIsCounting(true);
-    }
-  }
-
-  function reset() {
-    setIsCounting(false);
-    setIsRunning(false);
-    setCurrTime(totalTime)
-  }
 }
 
 export default App;

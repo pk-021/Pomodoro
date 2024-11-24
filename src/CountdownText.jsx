@@ -1,8 +1,8 @@
 function CountdownText(props) {
+  let seconds;
 
   let minutes =Math.floor(props.time / (60*1000));
-  let seconds = (props.time/1000) % 60;
-  
+  seconds = Math.floor((props.time / 1000) % 60);
   return (
     <>
       <h1 className="text-white font-sourGummy text-[150px]
