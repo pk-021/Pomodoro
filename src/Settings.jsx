@@ -9,7 +9,7 @@ function Settings(props) {
     console.log(parsedTime);
 
     if (!isNaN(parsedTime) && parsedTime > 0) {
-      props.setDuration(parsedTime * 60 *1000);
+      props.setDuration(parsedTime * 60 * 1000);
       props.setVisibility(false);
     } else {
       alert("Please enter a valid number for the time.");
@@ -21,13 +21,27 @@ function Settings(props) {
     <div>
       {props.visibility && (
         <div className="bg-purple-950/50 w-screen h-screen absolute top-0 left-0">
+
+
+
           <form onSubmit={handleSubmit}
-            className="bg-white  flex items-center justify-center flex-col
+            className="bg-white  flex items-center flex-col
         absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
         w-1/2 min-h-96 max-w-96
         rounded-lg shadow-xl"
           >
-            <h1 className="text-black text-2xl">Settings</h1>
+            <div className="w-full relative">
+              <h1 className="text-black text-2xl my-6 mx-6 text-center">Settings</h1>
+
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="black"
+                className="size-7 mx-4 absolute right-0 top-1/2 -translate-y-1/2
+                hover:bg-purple-400 hover:stroke-white rounded-full hover:scale-110 transition-transform"
+                onClick={() => props.setVisibility(false)}
+                >
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
+
+              </svg>
+            </div>
 
             <div className="pomodoroIP mt-6 font-semibold text-gray-600">
               <h2 className="">Pomodoro</h2>
@@ -51,6 +65,7 @@ function Settings(props) {
               type="submit"
               className="bg-purple-400 px-6 py-2 rounded-lg  font-semibold text-white m-6"
             />
+
           </form>
         </div>
       )}
