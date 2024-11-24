@@ -13,18 +13,15 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
   const [settingsVisibility, setSettingsVisibility] = useState(false);
+  const [animateStartup, setAnimateStartup] = useState(false);
+
 
   const startTime = useRef(null);
   const pauseTime = useRef(null);
   const pauseDuration = useRef(0);
-
-  // const duration = useRef(null);
-
-  // const remaining = useRef(duration.current);
-
-
-  const shouldAnimate = useRef(true);
   const stopId = useRef(null);
+
+  const startupAnimationDuration = 1000;
 
 
   function handleButtonClick() {
@@ -33,14 +30,20 @@ function App() {
       isPaused ? resumeTimer() : pauseTimer();
     }
     else {
-      startTime.current = Date.now();
-      pauseDuration.current = 0;
-      setRemaining(duration);
-      setIsRunning(true);
-      setIsPaused(false);
-      if (!stopId.current) {
-        stopId.current = window.requestAnimationFrame(stepTimer);
-      }
+
+        setAnimateStartup(true);
+        setTimeout(()=>{
+          setAnimateStartup(false);
+          setRemaining(duration);
+          setIsRunning(true);
+          setIsPaused(false);
+          pauseDuration.current = 0;
+          startTime.current = Date.now();
+          if (!stopId.current) {
+            stopId.current = window.requestAnimationFrame(stepTimer);
+          }
+        },1000
+      )
     }
   }
 
@@ -53,7 +56,6 @@ function App() {
     }
 
     if (newRemaining > 0) {
-      console.log(newRemaining);
       stopId.current = requestAnimationFrame(stepTimer); // Continue the timer
     } else {
       setRemaining(0);
@@ -97,7 +99,14 @@ function App() {
   return (
     <div className="flex flex-col items-center">
       <div id="countdown" className="relative felx items-center justify-center">
-        <CountdownCircle isRunning={isRunning} totalTime={duration} currTime={remaining} refreshRate={refreshRate} />
+        <CountdownCircle
+          isRunning={isRunning}
+          totalTime={duration}
+          remaining={remaining}
+          refreshRate={refreshRate}
+          startupAnimationDuration={startupAnimationDuration}
+          animateStartup={animateStartup} />
+
         <CountdownText time={remaining} />
       </div>
 
@@ -109,7 +118,7 @@ function App() {
         >
           {(isRunning && (!isPaused)) ? "PAUSE" : "START"}
         </button>
-        <Skip resetFun={()=>{resetTimer(duration)}} />
+        <Skip resetFun={() => { resetTimer(duration) }} />
       </div>
 
       <Settings
