@@ -4,6 +4,7 @@ import CountdownCircle from "./CountdownCircle";
 import CountdownText from "./CountdownText";
 import Settings from "./Settings";
 import Skip from "./skip";
+import Mode  from "./Mode";
 
 function App() {
 
@@ -25,7 +26,6 @@ function App() {
 
 
   function handleButtonClick() {
-
     if (isRunning) {
       isPaused ? resumeTimer() : pauseTimer();
     }
@@ -59,6 +59,7 @@ function App() {
       stopId.current = requestAnimationFrame(stepTimer); // Continue the timer
     } else {
       setRemaining(0);
+      playTimerEnd();
       setTimeout(resetTimer, refreshRate);
       console.log("Timer completed!")
     }
@@ -98,6 +99,7 @@ function App() {
 
   return (
     <div className="flex flex-col items-center">
+      <Mode></Mode>
       <div id="countdown" className="relative felx items-center justify-center">
         <CountdownCircle
           isRunning={isRunning}
@@ -108,6 +110,7 @@ function App() {
           animateStartup={animateStartup} />
 
         <CountdownText time={remaining} />
+
       </div>
 
       <div className="userControls flex relative h-fit justify-center items-center">
@@ -133,4 +136,10 @@ function App() {
   );
 }
 
+
+function playTimerEnd()
+{
+ const audio = new Audio("ting.mp3");
+ audio.play();
+}
 export default App;
