@@ -5,6 +5,7 @@ import CountdownText from "./CountdownText";
 import Settings from "./Settings";
 import Skip from "./skip";
 import Mode from "./Mode";
+const audio = new Audio("ting.mp3");
 
 function App() {
 
@@ -23,14 +24,25 @@ function App() {
   const [settingsVisibility, setSettingsVisibility] = useState(false);
   const [animateStartup, setAnimateStartup] = useState(false);
 
-
   const startTime = useRef(null);
   const pauseTime = useRef(null);
   const pauseDuration = useRef(0);
   const stopId = useRef(null);
 
+  const pomodoroTime = useRef(5000);
+  const shortBreakTime = useRef(5 * 60 * 1000);
+  const longBreakTime = useRef(15 * 60 * 1000);
+
+
   const startupAnimationDuration = 1000;
 
+  useEffect(() => {
+    return () => {
+      if (stopId.current) {
+        cancelAnimationFrame(stopId.current);
+      }
+    };
+  }, []);
 
   function handleButtonClick() {
     if (isRunning) {
@@ -58,17 +70,16 @@ function App() {
     const elapsed = Date.now() - startTime.current - pauseDuration.current;
     const newRemaining = Math.max(duration - elapsed, 0);
 
+    // Only update React state every refreshRate
     if (elapsed % refreshRate < 16) {
       setRemaining(newRemaining);
     }
 
+
     if (newRemaining > 0) {
       stopId.current = requestAnimationFrame(stepTimer); // Continue the timer
     } else {
-      setRemaining(0);
-      playTimerEnd();
-      setTimeout(resetTimer, refreshRate);
-      console.log("Timer completed!")
+      handleTimerEnd();
     }
   };
 
@@ -86,26 +97,47 @@ function App() {
     stopId.current = requestAnimationFrame(stepTimer);
   }
 
-
+  function handleTimerEnd() {
+    audio.play();
+    setRemaining(0);
+    setTimeout(() => {
+      if (isPomodoro) {
+        setIsPomodro(false);
+        setIsShortBreak(true);
+        resetTimer(shortBreakTime.current);
+      }
+      else if (isShortBreak) {
+        setIsShortBreak(false);
+        setIsLongBreak(true);
+        resetTimer(longBreakTime.current);
+      }
+      else if (isLongBreak) {
+        setIsLongBreak(false);
+        setIsPomodro(true);
+        resetTimer(pomodoroTime.current);
+      }
+      console.log("Timer completed!")
+    }, refreshRate);
+  }
 
 
   function handlePomodroClick() {
     console.log(isPomodoro);
-    resetTimer(25 * 60 * 1000);
+    resetTimer(pomodoroTime.current);
     setIsPomodro(true);
     setIsShortBreak(false);
     setIsLongBreak(false);
   }
 
   function handleShortBreakClick() {
-    resetTimer(5 * 60 * 1000);
+    resetTimer(shortBreakTime.current);
     setIsPomodro(false);
     setIsShortBreak(true);
     setIsLongBreak(false);
   }
 
   function handleLongBreakClick() {
-    resetTimer(15 * 60 * 1000);
+    resetTimer(longBreakTime.current);
     setIsPomodro(false);
     setIsShortBreak(false);
     setIsLongBreak(true);
@@ -113,6 +145,7 @@ function App() {
 
   // useEffect(updateCountdown, [isRunning, isCounting]);
   function resetTimer(_duration = duration) {
+    console.log("timer reset")
     if (stopId.current) {
       cancelAnimationFrame(stopId.current);
       stopId.current = null;
@@ -173,9 +206,5 @@ function App() {
 }
 
 
-function playTimerEnd() {
-  const audio = new Audio("ting.mp3");
-  audio.play();
-}
 export default App;
 
