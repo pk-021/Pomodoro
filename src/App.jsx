@@ -99,6 +99,7 @@ function App() {
 
   function handleTimerEnd() {
     audio.play();
+    cancelAnimationFrame(stopId.current);
     setRemaining(0);
     setTimeout(() => {
       if (isPomodoro) {
@@ -122,7 +123,6 @@ function App() {
 
 
   function handlePomodroClick() {
-    console.log(isPomodoro);
     resetTimer(pomodoroTime.current);
     setIsPomodro(true);
     setIsShortBreak(false);
@@ -190,7 +190,9 @@ function App() {
         >
           {(isRunning && (!isPaused)) ? "PAUSE" : "START"}
         </button>
-        <Skip resetFun={() => { resetTimer(duration) }} />
+        <Skip resetFun={() => {
+          handleTimerEnd();
+        }} />
       </div>
 
       <Settings
