@@ -1,18 +1,25 @@
-import { useDeferredValue, useEffect, useRef, useState } from "react";
+import { isValidElement, useDeferredValue, useEffect, useRef, useState } from "react";
 
 import CountdownCircle from "./CountdownCircle";
 import CountdownText from "./CountdownText";
 import Settings from "./Settings";
 import Skip from "./skip";
-import Mode  from "./Mode";
+import Mode from "./Mode";
 
 function App() {
 
   const refreshRate = 1000;
   const [duration, setDuration] = useState(10000);
   const [remaining, setRemaining] = useState(duration);
+
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
+
+  const [isPomodoro, setIsPomodro] = useState(false);
+  const [isShortBreak, setIsShortBreak] = useState(false);
+  const [isLongBreak, setIsLongBreak] = useState(false);
+
+
   const [settingsVisibility, setSettingsVisibility] = useState(false);
   const [animateStartup, setAnimateStartup] = useState(false);
 
@@ -31,18 +38,18 @@ function App() {
     }
     else {
 
-        setAnimateStartup(true);
-        setTimeout(()=>{
-          setAnimateStartup(false);
-          setRemaining(duration);
-          setIsRunning(true);
-          setIsPaused(false);
-          pauseDuration.current = 0;
-          startTime.current = Date.now();
-          if (!stopId.current) {
-            stopId.current = window.requestAnimationFrame(stepTimer);
-          }
-        },1000
+      setAnimateStartup(true);
+      setTimeout(() => {
+        setAnimateStartup(false);
+        setRemaining(duration);
+        setIsRunning(true);
+        setIsPaused(false);
+        pauseDuration.current = 0;
+        startTime.current = Date.now();
+        if (!stopId.current) {
+          stopId.current = window.requestAnimationFrame(stepTimer);
+        }
+      }, 1000
       )
     }
   }
@@ -80,6 +87,31 @@ function App() {
   }
 
 
+
+
+  function handlePomodroClick() {
+    console.log(isPomodoro);
+    resetTimer(25 * 60 * 1000);
+    setIsPomodro(true);
+    setIsShortBreak(false);
+    setIsLongBreak(false);
+  }
+
+  function handleShortBreakClick() {
+    resetTimer(5 * 60 * 1000);
+    setIsPomodro(false);
+    setIsShortBreak(true);
+    setIsLongBreak(false);
+  }
+
+  function handleLongBreakClick() {
+    resetTimer(15 * 60 * 1000);
+    setIsPomodro(false);
+    setIsShortBreak(false);
+    setIsLongBreak(true);
+  }
+
+  // useEffect(updateCountdown, [isRunning, isCounting]);
   function resetTimer(_duration = duration) {
     if (stopId.current) {
       cancelAnimationFrame(stopId.current);
@@ -93,13 +125,17 @@ function App() {
     setDuration(_duration);
     setRemaining(_duration);
   }
-
-
-  // useEffect(updateCountdown, [isRunning, isCounting]);
-
   return (
     <div className="flex flex-col items-center">
-      <Mode></Mode>
+
+      <Mode
+        isPomodoro={isPomodoro}
+        isLongBreak={isLongBreak}
+        isShortBreak={isShortBreak}
+        handlePomodroClick={handlePomodroClick}
+        handleShortBreakClick={handleShortBreakClick}
+        handleLongBreakClick={handleLongBreakClick} />
+
       <div id="countdown" className="relative felx items-center justify-center">
         <CountdownCircle
           isRunning={isRunning}
@@ -137,9 +173,9 @@ function App() {
 }
 
 
-function playTimerEnd()
-{
- const audio = new Audio("ting.mp3");
- audio.play();
+function playTimerEnd() {
+  const audio = new Audio("ting.mp3");
+  audio.play();
 }
 export default App;
+
