@@ -8,6 +8,10 @@ export default {
     extend: {
       fontFamily: {
         sourGummy: ['"Sour Gummy"', 'sans'],
+        airalRoundedMtBold:['"Arial Rounded MT"','"Helvetica Rounded"',"Helvetica",'sans'],
+        helvetica:['Helvetica','Helvetica Neue','"Helvetica Rounded"','sans'],
+        helveticaRounded:['"Helvetica Rounded"','Helvetica','sans'],
+        sevenSegment:['"Segment7"',"Helvetica"]
       },
       keyframes: {
         startCircleTimer: {

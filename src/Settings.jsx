@@ -1,74 +1,148 @@
 import { useEffect, useRef, useState } from "react";
 
 function Settings(props) {
-  const [userTime, setUserTime] = useState('');
+
+
+  const [userPomodoro, setUserPomodoro] = useState(props.pomoMins);
+  const [userSBreakTime, setSBreakTime] = useState(props.sBreakMins);
+  const [userLBreakTime, setLBreakTime] = useState(props.lBreakMins);
+
 
   const handleSubmit = (event) => {
     event.preventDefault();
-    const parsedTime = parseFloat(userTime); // Ensure numeric value
-    console.log(parsedTime);
 
-    if (!isNaN(parsedTime) && parsedTime > 0) {
-      props.setDuration(parsedTime * 60 * 1000);
+    const pomoTime = parseFloat(userPomodoro); // Ensure numeric value
+    const sBreakTime = parseFloat(userSBreakTime);
+    const lBreakTime = parseFloat(userLBreakTime);
+
+    if (!isNaN(pomoTime) && pomoTime > 0
+      && !isNaN(sBreakTime) && sBreakTime > 0
+      && !isNaN(lBreakTime) && lBreakTime > 0
+    ) {
+      props.updateTimes(pomoTime * 60000, sBreakTime * 60000, lBreakTime * 60000);
       props.setVisibility(false);
     } else {
       alert("Please enter a valid number for the time.");
     }
+
+    props.setSelectedFace(document.getElementById("timerFaceDropdown").value);
+
   };
 
 
   return (
     <div>
       {props.visibility && (
-        <div className="bg-purple-950/50 w-screen h-screen absolute top-0 left-0">
-
+        <div className="bg-neutral-800/50 w-screen h-screen absolute top-0 left-0">
 
 
           <form onSubmit={handleSubmit}
-            className="bg-white  flex items-center flex-col
+            className="bg-neutral-600 text-neutral-300 flex items-center flex-col
+            font-semibold
         absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2
         w-1/2 min-h-96 max-w-96
         rounded-lg shadow-xl"
           >
-            <div className="w-full relative">
-              <h1 className="text-black text-2xl my-6 mx-6 text-center">Settings</h1>
 
-              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="black"
+
+            {/* cross icon */}
+            <div className="w-full relative">
+              <h1 className="text-2xl my-6 mx-6 text-center">Settings</h1>
+
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5}
                 className="size-7 mx-4 absolute right-0 top-1/2 -translate-y-1/2
-                hover:bg-purple-400 hover:stroke-white rounded-full hover:scale-110 transition-transform"
+                  stroke-white hover:bg-neutral-400 hover:stroke-neutral-600 rounded-full hover:scale-110 transition-transform"
                 onClick={() => props.setVisibility(false)}
-                >
+              >
                 <path strokeLinecap="round" strokeLinejoin="round" d="M6 18 18 6M6 6l12 12" />
 
               </svg>
             </div>
 
-            <div className="pomodoroIP mt-6 font-semibold text-gray-600">
-              <h2 className="">Pomodoro</h2>
-              <input
-                value={userTime}
-                className="bg-gray-200 rounded px-2"
-                type="text"
-                name=""
-                id=""
-                inputMode="numeric"
-                pattern="\d+(\.\d+)?"
-                placeholder="00 (minutes)"
-                onChange={(evnt) => {
-                  setUserTime(evnt.target.value);
-                }}
-              />
+
+            <div>
+              {/* form fields */}
+              <div className="w-full flex mt-6 flex-col font-semibold">
+
+                <label htmlFor="Faces">Choose a face:</label>
+                <select className="bg-neutral-200 px-2 text-neutral-600 rounded-md h-10"
+                  name="Faces" id="timerFaceDropdown" defaultValue={props.selectedFace} required>
+                  <option label="pie" value="pie"></option>
+                  <option label="ring" value="ring"></option>
+                  <option label="segmented" value="segmented"></option>
+                  <option label="analog" value="analog"></option>
+                  <option label="simple" value="simple"></option>
+                </select>
+              </div>
+
+
+              <div className="w-full pomodoroIP mt-6 font-semibold">
+                <h2 className="">Pomodoro</h2>
+                <input
+                  value={userPomodoro}
+                  className="bg-neutral-500 rounded px-2 text-neutral-300 placeholder-neutral-400"
+                  type="text"
+                  name=""
+                  id=""
+                  inputMode="numeric"
+                  pattern="\d+(\.\d+)?"
+                  placeholder="minutes"
+                  onChange={(evnt) => {
+                    setUserPomodoro(evnt.target.value);
+                  }}
+                />
+              </div>
+
+              <div className="w-full ShortBreakIP mt-6 font-semibold">
+                <h2 className="">Short Break</h2>
+                <input
+                  value={userSBreakTime}
+                  className="bg-neutral-500 rounded px-2 text-neutral-300 placeholder-neutral-400"
+
+                  type="text"
+                  name=""
+                  id=""
+                  inputMode="numeric"
+                  pattern="\d+(\.\d+)?"
+                  placeholder="minutes"
+                  onChange={(evnt) => {
+                    setSBreakTime(evnt.target.value);
+                  }}
+                />
+              </div>
+
+
+              {/* settings icon */}
+              <div className="w-full LongBreakIP mt-6 font-semibold">
+                <h2 className="">Long Break</h2>
+                <input
+                  value={userLBreakTime}
+                  className="bg-neutral-500 rounded px-2 text-neutral-300 placeholder-neutral-400"
+                  type="text"
+                  name=""
+                  id=""
+                  inputMode="numeric"
+                  pattern="\d+(\.\d+)?"
+                  placeholder="minutes"
+                  onChange={(evnt) => {
+                    setLBreakTime(evnt.target.value);
+                  }}
+                />
+              </div>
+
             </div>
 
             <input
-              value={"Ok"}
+              value={"OK"}
               type="submit"
-              className="bg-purple-400 px-6 py-2 rounded-lg  font-semibold text-white m-6"
+              className="bg-neutral-300 px-6 py-2 rounded-lg text-neutral-600  m-6
+               hover:bg-amber-300 hover:text-neutral-600 "
             />
 
           </form>
         </div>
       )}
+
 
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -76,7 +150,7 @@ function Settings(props) {
         viewBox="0 0 24 24"
         strokeWidth="1.5"
         stroke="white"
-        className="w-10 h-10 m-6 top-0 right-0 absolute hover:cursor-pointer"
+        className="size-14 m-6 p-2 top-0 right-0 absolute rounded-full hover:cursor-pointer hover:bg-neutral-500 hover:scale-105 active:rotate-45 transition-transform"
         onClick={() => {
           props.setVisibility(!props.visibility);
         }}

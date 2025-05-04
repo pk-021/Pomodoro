@@ -1,13 +1,19 @@
 import { isValidElement, useDeferredValue, useEffect, useRef, useState } from "react";
 
-import CountdownCircle from "./CountdownCircle";
-import CountdownText from "./CountdownText";
+import SimpleTextCounter from "./SimpleTextCounter";
+import CountdownRing from "./CountdownRing";
+import CountdownCircle from "./CountdownCirle";
+import SegmentedDisplay from "./SegmentedDisplay";
+import AnalogTimer from "./AnalogTimer";
+
+import TimerControls from "./TimerControls";
 import Settings from "./Settings";
-import Skip from "./skip";
 import Mode from "./Mode";
 const audio = new Audio("ting.mp3");
 
+
 function App() {
+
 
   const refreshRate = 1000;
   const [duration, setDuration] = useState(10000);
@@ -16,10 +22,9 @@ function App() {
   const [isRunning, setIsRunning] = useState(false);
   const [isPaused, setIsPaused] = useState(true);
 
-  const [isPomodoro, setIsPomodro] = useState(false);
-  const [isShortBreak, setIsShortBreak] = useState(false);
-  const [isLongBreak, setIsLongBreak] = useState(false);
-
+  const isPomodoro = useRef(true);
+  const isShortBreak = useRef(false);
+  const isLongBreak = useRef(false);
 
   const [settingsVisibility, setSettingsVisibility] = useState(false);
   const [animateStartup, setAnimateStartup] = useState(false);
@@ -28,12 +33,24 @@ function App() {
   const pauseTime = useRef(null);
   const pauseDuration = useRef(0);
   const stopId = useRef(null);
+  const remainingRef = useRef(remaining);
 
-  const pomodoroTime = useRef(5000);
+
+  const pomodoroTime = useRef(6000);
   const shortBreakTime = useRef(5 * 60 * 1000);
   const longBreakTime = useRef(15 * 60 * 1000);
 
-
+  
+  const clockFaces = {
+    simple: SimpleTextCounter,
+    ring: CountdownRing,
+    pie: CountdownCircle,
+    segmented: SegmentedDisplay,
+    analog: AnalogTimer
+  }
+  const [selectedFace, setSelectedFace] = useState('ring');
+  const CurrentClockFace = clockFaces[selectedFace]
+  
   const startupAnimationDuration = 1000;
 
   useEffect(() => {
@@ -44,36 +61,55 @@ function App() {
     };
   }, []);
 
-  function handleButtonClick() {
+  function requestNotificationPermission() {
+    if ("Notification" in window && Notification.permission !== "granted") {
+      Notification.requestPermission().then(permission => {
+        if (permission === "granted") {
+          console.log("Notification permission granted");
+        }
+      });
+    }
+  }
+
+  function showNotification(title, options) {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(title, options);
+    }
+  }
+  
+  
+
+
+  function handlePlaybackClick() {
     if (isRunning) {
       isPaused ? resumeTimer() : pauseTimer();
     }
     else {
-
-      setAnimateStartup(true);
-      setTimeout(() => {
-        setAnimateStartup(false);
-        setRemaining(duration);
-        setIsRunning(true);
-        setIsPaused(false);
-        pauseDuration.current = 0;
-        startTime.current = Date.now();
-        if (!stopId.current) {
-          stopId.current = window.requestAnimationFrame(stepTimer);
-        }
-      }, 1000
-      )
+      // delay for animation logic here
+      setAnimateStartup(false);
+      setRemaining(duration);
+      requestNotificationPermission();
+      setIsRunning(true);
+      setIsPaused(false);
+      pauseDuration.current = 0;
+      startTime.current = Date.now();
+      if (!stopId.current) {
+        stopId.current = window.requestAnimationFrame(stepTimer);
+      }
     }
   }
 
-  const stepTimer = () => {
+  useEffect(() => {
+    remainingRef.current = remaining;
+  }, [remaining]);
+
+  
+  const lastFrameTime =useRef(0);
+  const stepTimer = (timeStamp) => {
     const elapsed = Date.now() - startTime.current - pauseDuration.current;
     const newRemaining = Math.max(duration - elapsed, 0);
 
-    // Only update React state every refreshRate
-    if (elapsed % refreshRate < 16) {
-      setRemaining(newRemaining);
-    }
+  setRemaining(newRemaining);
 
 
     if (newRemaining > 0) {
@@ -85,6 +121,7 @@ function App() {
 
   function pauseTimer() {
     cancelAnimationFrame(stopId.current);
+    stopId.current = null;
     pauseTime.current = Date.now();
     setIsPaused(true);
   }
@@ -99,110 +136,143 @@ function App() {
 
   function handleTimerEnd() {
     audio.play();
+    
+    showNotification("Timer Complete!", {
+      body: "Good job 🎉",
+    });
+
     cancelAnimationFrame(stopId.current);
+    stopId.current = null;
     setRemaining(0);
-    setTimeout(() => {
-      if (isPomodoro) {
-        setIsPomodro(false);
-        setIsShortBreak(true);
-        resetTimer(shortBreakTime.current);
+
+      if (isPomodoro.current) {
+        isPomodoro.current = false;
+        isLongBreak.current = false
+        isShortBreak.current = true;
+        resetTimer();
       }
-      else if (isShortBreak) {
-        setIsShortBreak(false);
-        setIsLongBreak(true);
-        resetTimer(longBreakTime.current);
+      else if (isShortBreak.current) {  
+        isPomodoro.current = false;
+        isLongBreak.current = true;
+        isShortBreak.current = false;
+        resetTimer();
       }
-      else if (isLongBreak) {
-        setIsLongBreak(false);
-        setIsPomodro(true);
-        resetTimer(pomodoroTime.current);
+      else if (isLongBreak.current) {
+        isPomodoro.current = true;
+        isLongBreak.current = false;
+        isShortBreak.current = false;
+        resetTimer();
       }
       console.log("Timer completed!")
-    }, refreshRate);
   }
 
 
   function handlePomodroClick() {
-    resetTimer(pomodoroTime.current);
-    setIsPomodro(true);
-    setIsShortBreak(false);
-    setIsLongBreak(false);
+
+    isPomodoro.current = true;
+    isShortBreak.current = false;
+    isLongBreak.current = false;
+    resetTimer();
   }
 
   function handleShortBreakClick() {
-    resetTimer(shortBreakTime.current);
-    setIsPomodro(false);
-    setIsShortBreak(true);
-    setIsLongBreak(false);
+    isPomodoro.current = false;
+    isShortBreak.current = true;
+    isLongBreak.current = false;
+    resetTimer();
   }
 
   function handleLongBreakClick() {
-    resetTimer(longBreakTime.current);
-    setIsPomodro(false);
-    setIsShortBreak(false);
-    setIsLongBreak(true);
+    isPomodoro.current = false;
+    isShortBreak.current = false;
+    isLongBreak.current = true;
+    resetTimer();
   }
 
   // useEffect(updateCountdown, [isRunning, isCounting]);
-  function resetTimer(_duration = duration) {
-    console.log("timer reset")
+  function resetTimer() {
+    let duration = pomodoroTime.current;
+
+    if (isShortBreak.current) {
+      duration = shortBreakTime.current;
+    }
+    else if (isLongBreak.current) {
+      duration = longBreakTime.current;
+
+    }
+    else {
+      duration = pomodoroTime.current;
+    }
+
     if (stopId.current) {
       cancelAnimationFrame(stopId.current);
       stopId.current = null;
     };
-    setIsPaused(true);
-    setIsRunning(false);
+
 
     pauseDuration.current = 0;
     startTime.current = null;
-    setDuration(_duration);
-    setRemaining(_duration);
+
+    setIsPaused(true);
+    setIsRunning(false);
+    setDuration(duration);
+    setRemaining(duration);
   }
   return (
     <div className="flex flex-col items-center">
 
       <Mode
-        isPomodoro={isPomodoro}
-        isLongBreak={isLongBreak}
-        isShortBreak={isShortBreak}
+        isPomodoro={isPomodoro.current}
+        isLongBreak={isLongBreak.current}
+        isShortBreak={isShortBreak.current}
         handlePomodroClick={handlePomodroClick}
         handleShortBreakClick={handleShortBreakClick}
         handleLongBreakClick={handleLongBreakClick} />
 
-      <div id="countdown" className="relative felx items-center justify-center">
-        <CountdownCircle
+
+      {/* timers of different styles in this box */}
+      <div id="countdown" className="relative flex h-[50rem] items-center justify-center overflow-clip">
+
+        <CurrentClockFace
           isRunning={isRunning}
           totalTime={duration}
           remaining={remaining}
           refreshRate={refreshRate}
           startupAnimationDuration={startupAnimationDuration}
           animateStartup={animateStartup} />
-
-        <CountdownText time={remaining} />
-
       </div>
 
-      <div className="userControls flex relative h-fit justify-center items-center">
-        <button
-          className={`px-16 ${isPaused ? "py-5" : "py-3"} z-10 h-fit
-          text-4xl text-purple-500 font-semibold font-mono bg-white rounded-lg`}
-          onClick={handleButtonClick}
-        >
-          {(isRunning && (!isPaused)) ? "PAUSE" : "START"}
-        </button>
-        <Skip resetFun={() => {
-          handleTimerEnd();
-        }} />
-      </div>
+      <TimerControls
+        isPaused={isPaused}
+        handlePlaybackClick={handlePlaybackClick}
+        handleTimerEnd={handleTimerEnd}
+      ></TimerControls>
+
+
+
+      {/* box ends */}
+
 
       <Settings
-        currentDuration={duration}
+        pomoMins={pomodoroTime.current / 60000}
+        sBreakMins={shortBreakTime.current / 60000}
+        lBreakMins={longBreakTime.current / 60000}
+        selectedFace={selectedFace}
+
         visibility={settingsVisibility}
         setVisibility={setSettingsVisibility}
-        setDuration={(time) => {
-          resetTimer(time);
+        setSelectedFace={setSelectedFace}
+        updateTimes={(pomoTime, sBreak, lBreak) => {
+
+          pomodoroTime.current = pomoTime;
+          shortBreakTime.current = sBreak;
+          longBreakTime.current = lBreak;
+          resetTimer();
         }}
       />
+
+
+
     </div>
   );
 }

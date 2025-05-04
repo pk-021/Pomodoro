@@ -3,8 +3,20 @@
 @tailwind utilities;
 
 .modeButton{
-    @apply  px-6 py-2 rounded-lg font-normal text-lg text-white hover:cursor-pointer transition-all active:translate-y-2 
+    @apply  px-6 py-2 text-lg text-neutral-400 hover:cursor-pointer hover:text-neutral-300 transition-all active:text-neutral-500
 }
 .modeButtonActive{
-    @apply bg-purple-400 font-medium
+    @apply text-amber-300
 }
+
+.text-glow {
+    text-shadow: 0 0 2px rgb(211, 64, 64), 0 0 2px rgb(211, 64, 64), 0 0 2px rgb(211, 64, 64);
+  }
+
+  @font-face {
+    font-family: 'Segment7';
+    src: url('/fonts/Segment7.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+  }
+  
